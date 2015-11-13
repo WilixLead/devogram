@@ -477,10 +477,24 @@ angular.module('myApp.directives', ['myApp.filters'])
           options.highlightUsername = user.username;
         }
       }
-      var html = RichTextProcessor.wrapRichText(message.message, options);
-      // console.log('dd', entities, html);
-
-      element.html(html.valueOf());
+      if( message.message.indexOf('[code]') !== -1 ) {
+        var codePart = '',
+            textPart = '';
+        var end = message.message.indexOf('[/code]');
+        if( end == -1 ) {
+          codePart = message.message.substr(message.message.indexOf('[code]') + 6);
+        } else {
+          codePart = message.message.substr(message.message.indexOf('[code]') + 6, end);
+          textPart = message.message.substr(end);
+        }
+        
+        var hResult = hljs.highlightAuto(codePart);
+        element.html('<pre><code class="' + hResult.language + '">' + hljs.fixMarkup(hResult.value) + '</code></pre>' + textPart);
+      } else {
+        var html = RichTextProcessor.wrapRichText(message.message, options);
+        // console.log('dd', entities, html);
+        element.html(html.valueOf());
+      }
     }
 
     function link ($scope, element, attrs) {
@@ -564,6 +578,7 @@ angular.module('myApp.directives', ['myApp.filters'])
 
   })
 
+    
   .directive('myMessagePhoto', function(AppPhotosManager) {
     return {
       scope: {

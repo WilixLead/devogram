@@ -145,6 +145,7 @@
     }
 
     $(document).ready(function() {
+      hljs.initHighlighting();
       bootReady.dom = true;
       if (!bootReady.i18n_ng) { // onDOMready because needs to be after angular
         $('<script>').appendTo('body')
