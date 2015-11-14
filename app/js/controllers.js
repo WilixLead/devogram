@@ -412,8 +412,8 @@ angular.module('myApp.controllers', ['myApp.i18n'])
     LayoutSwitchService.start();
   })
 
-  .controller('AppIMController', function ($q, qSync, $scope, $location, $routeParams, $modal, $rootScope, $modalStack, MtpApiManager, AppUsersManager, AppChatsManager, AppPeersManager, ContactsSelectService, ChangelogNotifyService, ErrorService, AppRuntimeManager, HttpsMigrateService, LayoutSwitchService, LocationParamsService, AppStickersManager) {
-
+  .controller('AppIMController', function ($cookies, $q, qSync, $scope, $location, $routeParams, $modal, $rootScope, $modalStack, MtpApiManager, AppUsersManager, AppChatsManager, AppPeersManager, ContactsSelectService, ChangelogNotifyService, ErrorService, AppRuntimeManager, HttpsMigrateService, LayoutSwitchService, LocationParamsService, AppStickersManager) {
+    $rootScope.sidebar_opened = true;
     $scope.$on('$routeUpdate', updateCurDialog);
 
     var pendingParams = false;
@@ -585,7 +585,16 @@ angular.module('myApp.controllers', ['myApp.i18n'])
     $scope.toggleSearch = function () {
       $scope.$broadcast('dialogs_search_toggle');
     };
-
+  
+    $scope.toggleSidebar = function(){
+      $scope.sidebar_opened = !$scope.sidebar_opened;
+      $cookies.put('sidebar_opened', $scope.sidebar_opened);
+    };
+    
+    if( $cookies.get('sidebar_opened') == 'true' ){
+      $scope.sidebar_opened = true;
+    }
+    
     updateCurDialog();
 
     var lastSearch = false;
@@ -1028,7 +1037,7 @@ angular.module('myApp.controllers', ['myApp.i18n'])
 
   })
 
-  .controller('AppImHistoryController', function ($scope, $location, $timeout, $modal, $rootScope, MtpApiManager, AppUsersManager, AppChatsManager, AppMessagesManager, AppPeersManager, ApiUpdatesManager, PeersSelectService, IdleManager, StatusManager, NotificationsManager, ErrorService) {
+  .controller('AppImHistoryController', function ($scope, $location, $timeout, $modal, $rootScope, MtpApiManager, AppUsersManager, AppChatsManager, AppMessagesManager, AppPeersManager, ApiUpdatesManager, PeersSelectService, IdleManager, StatusManager, NotificationsManager, ErrorService, DevogramService) {
 
     $scope.$watchCollection('curDialog', applyDialogSelect);
 
@@ -1060,6 +1069,7 @@ angular.module('myApp.controllers', ['myApp.i18n'])
     $scope.joinChannel = joinChannel;
     $scope.togglePeerMuted = togglePeerMuted;
 
+    $scope.pinMessage = pinMessage;
 
     $scope.toggleEdit = toggleEdit;
     $scope.toggleMedia = toggleMedia;
@@ -1755,6 +1765,10 @@ angular.module('myApp.controllers', ['myApp.i18n'])
       }
     }
 
+    function pinMessage(messageId){
+      DevogramService.pinMessage($scope.historyPeer.id, messageId);
+    }
+      
     $scope.$on('history_update', angular.noop);
 
     var loadAfterSync = false;
@@ -2098,6 +2112,12 @@ angular.module('myApp.controllers', ['myApp.i18n'])
         var text = $scope.draftMessage.text;
 
         if (angular.isString(text) && text.length > 0) {
+          // Check highlight
+          var isCode = hljs.highlightAuto(text);
+          if( isCode && isCode.language && isCode.r > 10 ) {
+            text = '[code]' + text + '[/code]';
+          }
+          
           text = text.replace(/:([a-z0-9\-\+\*_]+?):/gi, function (all, shortcut) {
             var emojiCode = EmojiHelper.shortcuts[shortcut];
             if (emojiCode !== undefined) {
@@ -3715,6 +3735,7 @@ angular.module('myApp.controllers', ['myApp.i18n'])
   .controller('ChangelogModalController', function ($scope, $modal) {
 
     $scope.currentVersion = Config.App.version;
+    $scope.webogramVersion = Config.App.webogram_version;
     if (!$scope.lastVersion) {
       var versionParts = $scope.currentVersion.split('.');
       $scope.lastVersion = versionParts[0] + '.' + versionParts[1] + '.' + Math.max(0, versionParts[2] - 1);
@@ -4612,4 +4633,35 @@ angular.module('myApp.controllers', ['myApp.i18n'])
         $scope.stickersetInstalled = installed;
       })
     }
+  })
+
+  .controller('AppDevogramSideController', function($rootScope, $scope, DevogramService, AppMessagesManager){
+      $scope.channelId = $scope.historyPeer.id;
+      $scope.pinnedMessages = [];
+      $scope.selectedMsgs = [];
+      
+      $scope.unpinMessage = function(messageId){
+        DevogramService.unpinMessage($scope.channelId,  messageId);
+      };
+      
+      $scope.$watch('historyPeer.id', function(newVal, oldVal){
+        $scope.channelId = newVal;
+        $scope.pinnedMessages = [];
+        DevogramService.getPinnedMessages($scope.channelId);
+      });
+      
+      $rootScope.$on('pined_messages_changed', function(e, data){
+        if( data.messages && data.messages.length > 0 ) {
+          $scope.pinnedMessages = [];
+          angular.forEach(data.messages, function(msg){
+            $scope.pinnedMessages.push(AppMessagesManager.wrapForHistory(msg.id));
+          });
+        } else {
+          $scope.pinnedMessages = data.messages
+        }
+      });
+      
+      $(window).on('resize', function(){
+        $('.im_sidebar_col_wrap').height( $('.im_dialogs_col_wrap').height() );
+      }).trigger('resize');
   })

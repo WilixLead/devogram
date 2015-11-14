@@ -2,7 +2,7 @@
 
 <div class="im_page_wrap clearfix" ng-class="{im_page_peer_not_selected: !curDialog.peer}">
 
-  <div class="im_page_split clearfix">
+  <div class="im_page_split clearfix" ng-class="{im_page_has_sidebar: sidebar_opened}">
 
     <div class="im_dialogs_col_wrap noselect" ng-controller="AppImDialogsController" my-dialogs ng-class="search.query.length > 0 ? 'im_dialogs_col_search' : ''">
       <div class="im_dialogs_panel">
@@ -229,7 +229,11 @@
       </div>
 
     </div>
-
+    
+    <div class="im_sidebar_col_wrap noselect" ng-controller="AppDevogramSideController" ng-if="sidebar_opened">
+      <div class="im_history_message_wrap" my-pinned-message ng-repeat="historyMessage in pinnedMessages"></div>
+      <div style="height: 20px; min-height: 20px"></div>
+    </div>
   </div>
 
 </div>

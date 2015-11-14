@@ -12,6 +12,7 @@ angular.module('myApp', [
   'ngRoute',
   'ngSanitize',
   'ngTouch',
+  'ngCookies',
   'ui.bootstrap',
   'mediaPlayer',
   'izhukov.utils',

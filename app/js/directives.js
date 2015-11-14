@@ -173,6 +173,141 @@ angular.module('myApp.directives', ['myApp.filters'])
       }
     }
   })
+
+  .directive('myPinnedMessage', function($filter, _) {
+
+    var dateFilter = $filter('myDate'),
+        dateSplitHtml = '<div class="im_message_date_split im_service_message_wrap"><div class="im_service_message"></div></div>',
+        unreadSplitHtml = '<div class="im_message_unread_split">' + _('unread_messages_split') + '</div>',
+        selectedClass = 'im_message_selected',
+        focusClass = 'im_message_focus',
+        unreadClass =  'im_message_unread',
+        errorClass = 'im_message_error',
+        pendingClass = 'im_message_pending';
+
+    return {
+      templateUrl: templateUrl('message_pinned'),
+      link: link
+    };
+
+    function link($scope, element, attrs) {
+      var selected = false,
+          grouped = false,
+          focused = false,
+          error = false,
+          pending = false,
+          needDate = false,
+          unreadAfter = false,
+          applySelected = function () {
+            if (selected != ($scope.selectedMsgs[$scope.historyMessage.mid] || false)) {
+              selected = !selected;
+              element.toggleClass(selectedClass, selected);
+            }
+          },
+          needDateSplit,
+          applyGrouped = function () {
+            if (grouped != $scope.historyMessage.grouped) {
+              if (grouped) {
+                element.removeClass(grouped);
+              }
+              grouped = $scope.historyMessage.grouped;
+              if (grouped) {
+                element.addClass(grouped);
+              }
+            }
+            if (needDate != ($scope.historyMessage.needDate || false)) {
+              needDate = !needDate;
+              if (needDate) {
+                if (needDateSplit) {
+                  needDateSplit.show();
+                } else {
+                  needDateSplit = $(dateSplitHtml);
+                  $(needDateSplit[0].firstChild).text(dateFilter($scope.historyMessage.date));
+                  if (unreadAfterSplit) {
+                    needDateSplit.insertBefore(unreadAfterSplit)
+                  } else {
+                    needDateSplit.prependTo(element);
+                  }
+                }
+              } else {
+                needDateSplit.hide();
+              }
+            }
+          },
+          unreadAfterSplit;
+
+      applySelected();
+      applyGrouped();
+
+      $scope.$on('messages_select', applySelected);
+      $scope.$on('messages_regroup', applyGrouped);
+
+      $scope.$on('messages_focus', function (e, focusedMsgID) {
+        if ((focusedMsgID == $scope.historyMessage.mid) != focused) {
+          focused = !focused;
+          element.toggleClass(focusClass, focused);
+        }
+      });
+
+      var deregisterUnreadAfter;
+      if (!$scope.historyMessage.out &&
+          ($scope.historyMessage.unread || $scope.historyMessage.unreadAfter)) {
+        var applyUnreadAfter = function () {
+          if ($scope.peerHistory.peerID != $scope.historyPeer.id) {
+            return;
+          }
+          if (unreadAfter != ($scope.historyUnreadAfter == $scope.historyMessage.mid)) {
+            unreadAfter = !unreadAfter;
+            if (unreadAfter) {
+              if (unreadAfterSplit) {
+                unreadAfterSplit.show();
+              } else {
+                unreadAfterSplit = $(unreadSplitHtml).prependTo(element);
+              }
+            } else {
+              unreadAfterSplit.hide();
+              if (deregisterUnreadAfter) {
+                deregisterUnreadAfter();
+              }
+            }
+          }
+        };
+        applyUnreadAfter();
+        deregisterUnreadAfter = $scope.$on('messages_unread_after', applyUnreadAfter);
+      }
+      if ($scope.historyMessage.unread && $scope.historyMessage.out) {
+        element.addClass(unreadClass);
+        var deregisterUnread = $scope.$on('messages_read', function () {
+          if (!$scope.historyMessage.unread) {
+            element.removeClass(unreadClass);
+            deregisterUnread();
+            if (deregisterUnreadAfter && !unreadAfter) {
+              deregisterUnreadAfter();
+            }
+          }
+        });
+      }
+      if ($scope.historyMessage.error || $scope.historyMessage.pending) {
+        var applyPending = function () {
+              if (pending != ($scope.historyMessage.pending || false)) {
+                pending = !pending;
+                element.toggleClass(pendingClass, pending);
+              }
+              if (error != ($scope.historyMessage.error || false)) {
+                error = !error;
+                element.toggleClass(errorClass, error);
+              }
+              if (!error && !pending) {
+                deregisterPending();
+              }
+            },
+            deregisterPending = $scope.$on('messages_pending', applyPending);
+
+        applyPending();
+      }
+    }
+  })
+    
   .directive('myExternalEmbed', function () {
 
     var twitterAttached = false;
@@ -482,10 +617,10 @@ angular.module('myApp.directives', ['myApp.filters'])
             textPart = '';
         var end = message.message.indexOf('[/code]');
         if( end == -1 ) {
-          codePart = message.message.substr(message.message.indexOf('[code]') + 6);
+          codePart = message.message.substring(message.message.indexOf('[code]') + 6);
         } else {
-          codePart = message.message.substr(message.message.indexOf('[code]') + 6, end);
-          textPart = message.message.substr(end);
+          codePart = message.message.substring(message.message.indexOf('[code]') + 6, end);
+          textPart = message.message.substring(end + 7);
         }
         
         var hResult = hljs.highlightAuto(codePart);

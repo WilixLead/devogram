@@ -3906,3 +3906,110 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
     start: start
   };
 })
+
+.service('DevogramService', function($http, $rootScope, AppMessagesManager, AppUsersManager, AppChatsManager, MtpApiManager){
+  var pinnedMessages = {};
+  
+  function getPinned(channelId){
+    var arr = [];
+    if( !pinnedMessages[channelId] ){
+      return arr;
+    }
+    pinnedMessages[channelId].forEach(function(pinnedId){
+      arr.push(AppMessagesManager.getMessage(pinnedId));
+    });
+    return arr;
+  }
+      
+  function savePinned(channelId, messages){
+    if( !pinnedMessages[channelId] ){
+      pinnedMessages[channelId] = [];
+    }
+    angular.forEach(messages, function(msg){
+      if( pinnedMessages[channelId].indexOf(msg.id) === -1 ){
+        pinnedMessages[channelId].push(msg.id);
+      }
+    });
+  }
+  
+  function loadPinnedMessages(channelId, mids){
+    // If we receive empy mids, maybe we have cache, or maybe nothing lo load
+    if( !mids || !mids.length ){
+      return $rootScope.$broadcast('pined_messages_changed', { // Just notice our system
+        channelId: channelId,
+        messages: getPinned(channelId)
+      });
+    }
+    MtpApiManager.invokeApi('messages.getMessages', {
+      id: mids
+    }).then(function (getMessagesResult) {
+      AppUsersManager.saveApiUsers(getMessagesResult.users);
+      AppChatsManager.saveApiChats(getMessagesResult.chats);
+      AppMessagesManager.saveMessages(getMessagesResult.messages);
+
+      savePinned(channelId, getMessagesResult.messages);
+      
+      $rootScope.$broadcast('pined_messages_changed', {
+        channelId: channelId,
+        messages: getPinned(channelId)
+      });
+    });
+  }
+  
+  function checkInMessageCache(channelId, msgIDs){
+    if( pinnedMessages[channelId] && Array.isArray(msgIDs) ){ // check Cache
+      msgIDs.forEach(function(msgId){
+        if( pinnedMessages[channelId].indexOf(msgId) !== -1 ){
+          msgIDs.splice(msgIDs.indexOf(msgId), 1); // remove already loaded
+        }
+      });
+    }
+    return msgIDs;
+  }
+      
+  function getPinnedMessages(channelId){
+    $http.get('http://localhost:8001/api/v1/pinnedMessages/' + channelId).then(function(res){
+      if(!res.data || !res.data.success) {
+        return handleError(res);
+      }
+      var msgIDs = checkInMessageCache(channelId, res.data.messages);
+      loadPinnedMessages(channelId, msgIDs);
+    });
+  }
+  
+  function pinMessage(channelId, messageId, callback){
+    $http.post('http://localhost:8001/api/v1/pinnedMessages/' + channelId + '/' + messageId)
+        .then(function(res){
+          if(!res.data || !res.data.success) {
+            return handleError(res);
+          }
+          var msgIDs = checkInMessageCache(channelId, [messageId]);
+          loadPinnedMessages(channelId, msgIDs);
+          callback && callback(res.data);
+        });
+  }
+
+  function unpinMessage(channelId, messageId, callback){
+    $http.delete('http://localhost:8001/api/v1/pinnedMessages/' + channelId + '/' + messageId)
+        .then(function(res){
+          if(!res.data || !res.data.success) {
+            return handleError(res);
+          }
+          if( pinnedMessages[channelId] ){
+            pinnedMessages[channelId].splice(pinnedMessages[channelId].indexOf(messageId), 1);
+            loadPinnedMessages(channelId, []);
+          }
+          callback && callback(res.data);
+        });
+  }
+  
+  function handleError(res) {
+    console.log(res.data || res);
+  }
+      
+  return {
+    getPinnedMessages: getPinnedMessages,
+    pinMessage: pinMessage,
+    unpinMessage: unpinMessage
+  }
+})

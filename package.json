@@ -58,7 +58,7 @@
     "gulp-replace": "^0.2.0",
     "gulp-rev": "^1.1.0",
     "gulp-uglify": "^1.0.2",
-    "gulp-usemin": "^0.3.11",
+    "gulp-usemin": "^0.3.15",
     "gulp-zip": "^0.1.2",
     "http": "0.0.0",
     "run-sequence": "^1.0.2",

@@ -24,14 +24,17 @@ gulp.task('templates', function() {
 });
 
 gulp.task('usemin', ['templates', 'enable-production'], function() {
-  return gulp.src(['app/index.html', 'app/badbrowser.html'])
-    .pipe($.usemin({
-      html: [$.minifyHtml({empty: true})],
-      js: ['concat', $.ngAnnotate(), $.uglify({outSourceMap: false})],
-      css: ['concat', $.minifyCss({compatibility: true, keepBreaks: true})]
-    }))
-    .pipe(gulp.dest('dist'));
+  
 });
+//gulp.task('usemin', ['templates', 'enable-production'], function() {
+//  return gulp.src(['app/index.html', 'app/badbrowser.html'])
+//    .pipe($.usemin({
+//      html: [$.minifyHtml({empty: true})],
+//      js: ['concat', $.ngAnnotate(), $.uglify({outSourceMap: false})],
+//      css: ['concat', $.minifyCss({compatibility: true, keepBreaks: true})]
+//    }))
+//    .pipe(gulp.dest('dist'));
+//});
 
 // ulimit -n 10240 on OS X
 gulp.task('imagemin', function() {
