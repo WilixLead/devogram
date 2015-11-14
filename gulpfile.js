@@ -23,18 +23,18 @@ gulp.task('templates', function() {
     .pipe(gulp.dest('app/js'));
 });
 
-gulp.task('usemin', ['templates', 'enable-production'], function() {
-  
-});
 //gulp.task('usemin', ['templates', 'enable-production'], function() {
-//  return gulp.src(['app/index.html', 'app/badbrowser.html'])
-//    .pipe($.usemin({
-//      html: [$.minifyHtml({empty: true})],
-//      js: ['concat', $.ngAnnotate(), $.uglify({outSourceMap: false})],
-//      css: ['concat', $.minifyCss({compatibility: true, keepBreaks: true})]
-//    }))
-//    .pipe(gulp.dest('dist'));
+//  
 //});
+gulp.task('usemin', ['templates', 'enable-production'], function() {
+  return gulp.src(['app/index.html'])
+    .pipe($.usemin({
+      html: [$.minifyHtml({empty: true})],
+      js: ['concat', $.ngAnnotate(), $.uglify({outSourceMap: false})],
+      css: ['concat', $.minifyCss({compatibility: true, keepBreaks: true})]
+    }))
+    .pipe(gulp.dest('dist'));
+});
 
 // ulimit -n 10240 on OS X
 gulp.task('imagemin', function() {
@@ -240,7 +240,7 @@ gulp.task('watch', ['server', 'less'], function() {
 gulp.task('server', function(done) {
   http.createServer(
     st({ path: __dirname, index: 'index.html', cache: false })
-  ).listen(8000, done);
+  ).listen(8001, done);
 });
 
 gulp.task('clean', function() {

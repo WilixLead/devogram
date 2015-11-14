@@ -369,7 +369,7 @@
 	"error_modal_not_contact_flood": "Sorry, you can only send messages to mutual contacts at the moment. {more-info-link: More info »}",
 
 
-	"head_telegram": "Telegram",
+	"head_telegram": "Devogram",
 	"head_new_group": "New group",
 	"head_new_contact": "New contact",
 	"head_contacts": "Contacts",
@@ -480,10 +480,10 @@
 	"login_signing_up": "Signing up",
 	"login_sign_up": "Sign up",
 	"login_about_title": "About",
-	"login_about_desc1_md": "The Telegram web-client is a free, fast and secure way to enjoy most of **Telegram**'s features right in your **web-browser**.",
+	"login_about_desc1_md": "The Devogram web-client is a free, fast and secure way to enjoy most of **Telegram**'s features right in your **web-browser**.",
 	"login_about_desc2_md": "It is always synced with the **Telegram app** on your mobile device, which makes it a perfect tool for messaging and file sharing.",
-	"login_about_desc3_md": "Our {source-link: source code} is open, so everyone can make a contribution.",
-	"login_about_intro": "Welcome to the official Telegram web-client.",
+	"login_about_desc3_md": "Our {source-link: source code} is open, and based on Webogram, so everyone can make a contribution.",
+	"login_about_intro": "Welcome to the UNOFFICIAL Telegram web-client.",
 	"login_about_learn": "Learn more",
 	"login_password_title": "Password",
 	"login_password_label": "You have enabled Two-Step Verification, so your account is protected with an additional password.",

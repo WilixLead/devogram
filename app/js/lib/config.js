@@ -23,7 +23,7 @@ Config.App = {
   hash: '2e7097e552a05ff3380e6edf772f15d8',
   version: '0.0.1',
   webogram_version: '0.5.0',
-  domains: ['web.telegram.org', 'zhukov.github.io']
+  domains: ['devogram.wilix.ru']
 };
 
 Config.Modes = {
@@ -60,7 +60,7 @@ Config.I18n = {
     ,"it-it"
     ,"nl-nl"
     ,"pt-br"
-    // ,"ru-ru"
+    //,"ru-ru"
   ], // To be copied to package.json
   languages: {
     'en-us': 'English',

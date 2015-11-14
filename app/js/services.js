@@ -3968,7 +3968,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
   }
       
   function getPinnedMessages(channelId){
-    $http.get('http://localhost:8001/api/v1/pinnedMessages/' + channelId).then(function(res){
+    $http.get('/api/v1/pinnedMessages/' + channelId).then(function(res){
       if(!res.data || !res.data.success) {
         return handleError(res);
       }
@@ -3978,7 +3978,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
   }
   
   function pinMessage(channelId, messageId, callback){
-    $http.post('http://localhost:8001/api/v1/pinnedMessages/' + channelId + '/' + messageId)
+    $http.post('/api/v1/pinnedMessages/' + channelId + '/' + messageId)
         .then(function(res){
           if(!res.data || !res.data.success) {
             return handleError(res);
@@ -3990,7 +3990,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
   }
 
   function unpinMessage(channelId, messageId, callback){
-    $http.delete('http://localhost:8001/api/v1/pinnedMessages/' + channelId + '/' + messageId)
+    $http.delete('/api/v1/pinnedMessages/' + channelId + '/' + messageId)
         .then(function(res){
           if(!res.data || !res.data.success) {
             return handleError(res);
