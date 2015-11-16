@@ -9,7 +9,7 @@ var mongoose = require('mongoose');
 
 var PinnedMessage = require('./server/model_pinned_message.js');
 
-var port = 8000;
+var port = process.env.PORT || 8000;
 var app = express();
 var appPath = path.join(__dirname, './dist');
 

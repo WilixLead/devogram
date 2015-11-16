@@ -23,7 +23,7 @@ Scheme.statics.pinMessage = function (channelId, message, callback) {
         };
     }
     model.findOneAndUpdate( searchChannel, {
-            //$set: {channel_id: channelId[0] + '_' + channelId[1]},
+            $set: {channel_id: channelId[0] + '_' + channelId[1]},
             $addToSet: {messages: message }
         },
         {upsert: true, new: true}, function (err, doc) {
