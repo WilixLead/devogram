@@ -24,7 +24,7 @@
 
     <div ng-switch-default class="im_content_message_wrap" ng-class="::[historyMessage.out ? 'im_message_out' : 'im_message_in', historyMessage.fwdFromID ? 'im_message_fwd' : '']">
       <div class="clearfix">
-        <a ng-click="unpinMessage(historyMessage.mid)" title="Unpin" class="pull-right"><i class="icon-search-clear"></i></a>
+        <a ng-click="unpinMessage(historyMessage)" title="Unpin" class="pull-right"><i class="icon-search-clear"></i></a>
         
         <a class="im_message_from_photo pull-left" my-peer-photolink="::historyMessage.fromID" img-class="im_message_from_photo"></a>
         <a class="im_message_author" my-peer-link="historyMessage.fromID" short="historyMessage.toID > 0" color="historyMessage.toID < 0" no-watch="true"></a>

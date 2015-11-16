@@ -1765,8 +1765,8 @@ angular.module('myApp.controllers', ['myApp.i18n'])
       }
     }
 
-    function pinMessage(messageId){
-      DevogramService.pinMessage($scope.historyPeer.id, messageId);
+    function pinMessage(historyMessage){
+        DevogramService.pinMessage($scope.historyPeer, historyMessage);
     }
       
     $scope.$on('history_update', angular.noop);
@@ -4635,33 +4635,55 @@ angular.module('myApp.controllers', ['myApp.i18n'])
     }
   })
 
-  .controller('AppDevogramSideController', function($rootScope, $scope, DevogramService, AppMessagesManager){
-      $scope.channelId = $scope.historyPeer.id;
+  .controller('AppDevogramSideController', function($rootScope, $scope, DevogramService){
+    $scope.activeTab = 'pinned';
+    $scope.tabs = [
+      {name: 'pinned', title: 'Pinned', action: function(){ $scope.changeTab('pinned')}}
+    ];
+    
+    $scope.changeTab = function(tabname){
+      $scope.activeTab = tabname;
+    }
+      
+    $scope.pinnedMessages = [];
+    $scope.selectedMsgs = [];
+    
+    $scope.unpinMessage = function(message){
+      DevogramService.unpinMessage($scope.historyPeer,  message.dmuid);
+    };
+    
+    $scope.$watch('historyPeer.id', function(newVal, oldVal){
+      DevogramService.start();
       $scope.pinnedMessages = [];
-      $scope.selectedMsgs = [];
-      
-      $scope.unpinMessage = function(messageId){
-        DevogramService.unpinMessage($scope.channelId,  messageId);
-      };
-      
-      $scope.$watch('historyPeer.id', function(newVal, oldVal){
-        $scope.channelId = newVal;
-        $scope.pinnedMessages = [];
-        DevogramService.getPinnedMessages($scope.channelId);
-      });
-      
-      $rootScope.$on('pined_messages_changed', function(e, data){
-        if( data.messages && data.messages.length > 0 ) {
-          $scope.pinnedMessages = [];
-          angular.forEach(data.messages, function(msg){
-            $scope.pinnedMessages.push(AppMessagesManager.wrapForHistory(msg.id));
+      DevogramService.listen($scope.historyPeer);
+    });
+    
+    $rootScope.$on('pined_messages_changed', function(e, data){
+      if( data.messages && data.messages.length > 0 ) {
+        angular.forEach($scope.pinnedMessages, function(alreadyPinned, index){
+          var found = false;
+          angular.forEach(data.messages, function(msg, mindex){
+            if( alreadyPinned.dmuid == msg.dmuid ) {
+              alreadyPinned = angular.extend(alreadyPinned, msg);
+              data.messages.splice(mindex, 1);
+              found = true;
+            }
           });
-        } else {
-          $scope.pinnedMessages = data.messages
-        }
-      });
-      
-      $(window).on('resize', function(){
-        $('.im_sidebar_col_wrap').height( $('.im_dialogs_col_wrap').height() );
-      }).trigger('resize');
+          if( !found ) {
+            $scope.pinnedMessages.splice(index, 1);
+          }
+        });
+        // If we steel have messages - in new messages
+        angular.forEach(data.messages, function(msg){
+          $scope.pinnedMessages.push(msg);
+        });
+      } else {
+        $scope.pinnedMessages = data.messages
+      }
+    });
+    
+    $(window).on('resize', function(){
+      $('.im_sidebar_col_wrap').height( $('.im_dialogs_col_wrap').height() );
+    }).trigger('resize');
+    
   })

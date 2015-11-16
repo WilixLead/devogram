@@ -3907,98 +3907,88 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
   };
 })
 
-.service('DevogramService', function($http, $rootScope, AppMessagesManager, AppUsersManager, AppChatsManager, MtpApiManager){
+.service('DevogramService', function($http, $rootScope, $interval, AppMessagesManager, AppUsersManager, AppChatsManager, MtpApiManager){
+  var selfUser = null;
+  var listenInterval = null;
   var pinnedMessages = {};
-  
-  function getPinned(channelId){
-    var arr = [];
-    if( !pinnedMessages[channelId] ){
-      return arr;
-    }
-    pinnedMessages[channelId].forEach(function(pinnedId){
-      arr.push(AppMessagesManager.getMessage(pinnedId));
-    });
-    return arr;
-  }
-      
-  function savePinned(channelId, messages){
-    if( !pinnedMessages[channelId] ){
-      pinnedMessages[channelId] = [];
-    }
-    angular.forEach(messages, function(msg){
-      if( pinnedMessages[channelId].indexOf(msg.id) === -1 ){
-        pinnedMessages[channelId].push(msg.id);
-      }
-    });
-  }
-  
-  function loadPinnedMessages(channelId, mids){
-    // If we receive empy mids, maybe we have cache, or maybe nothing lo load
-    if( !mids || !mids.length ){
-      return $rootScope.$broadcast('pined_messages_changed', { // Just notice our system
-        channelId: channelId,
-        messages: getPinned(channelId)
-      });
-    }
-    MtpApiManager.invokeApi('messages.getMessages', {
-      id: mids
-    }).then(function (getMessagesResult) {
-      AppUsersManager.saveApiUsers(getMessagesResult.users);
-      AppChatsManager.saveApiChats(getMessagesResult.chats);
-      AppMessagesManager.saveMessages(getMessagesResult.messages);
+  var host = 'http://localhost:8000';
 
-      savePinned(channelId, getMessagesResult.messages);
-      
-      $rootScope.$broadcast('pined_messages_changed', {
-        channelId: channelId,
-        messages: getPinned(channelId)
+  function start(){
+    MtpApiManager.invokeApi('users.getFullUser', {
+      id: {_: 'inputUserSelf'}
+    }).then(function (userFullResult) {
+      MtpApiManager.getUserID().then(function (id) {
+        selfUser = AppUsersManager.getUser(id);
       });
     });
   }
   
-  function checkInMessageCache(channelId, msgIDs){
-    if( pinnedMessages[channelId] && Array.isArray(msgIDs) ){ // check Cache
-      msgIDs.forEach(function(msgId){
-        if( pinnedMessages[channelId].indexOf(msgId) !== -1 ){
-          msgIDs.splice(msgIDs.indexOf(msgId), 1); // remove already loaded
-        }
-      });
+  function listen(peer) {
+    if( listenInterval != null ){
+      listenInterval.cancel();
     }
-    return msgIDs;
+    if( peer == undefined || peer == null ){
+      return ;
+    }
+    getPinnedMessages(peer); // First call
+    listenInterval = $interval(function(){
+      getPinnedMessages(peer);
+    }, 3000);
   }
       
-  function getPinnedMessages(channelId){
-    $http.get('/api/v1/pinnedMessages/' + channelId).then(function(res){
+  function getPinnedMessages(peer){
+    var channelId = peer.id;
+    if( channelId > 0 ){ // Direct user mode
+      channelId = peer.data.phone + '_' + selfUser.phone;
+    }
+    $http.get(host + '/api/v1/pinnedMessages/' + channelId).then(function(res){
       if(!res.data || !res.data.success) {
         return handleError(res);
       }
-      var msgIDs = checkInMessageCache(channelId, res.data.messages);
-      loadPinnedMessages(channelId, msgIDs);
+      pinnedMessages[channelId] = res.data.messages;
+      $rootScope.$broadcast('pined_messages_changed', { // Just notice our system
+        channelId: channelId,
+        messages: pinnedMessages[channelId]
+      });
     });
   }
   
-  function pinMessage(channelId, messageId, callback){
-    $http.post('/api/v1/pinnedMessages/' + channelId + '/' + messageId)
-        .then(function(res){
-          if(!res.data || !res.data.success) {
-            return handleError(res);
-          }
-          var msgIDs = checkInMessageCache(channelId, [messageId]);
-          loadPinnedMessages(channelId, msgIDs);
-          callback && callback(res.data);
+  function pinMessage(peer, message, callback){
+    var channelId = peer.id;
+    if( channelId > 0 ){ // Direct user mode
+      channelId = peer.data.phone + '_' + selfUser.phone;
+    }
+    $http.post(host + '/api/v1/pinnedMessages/' + channelId, 
+      {message: message}, 
+      {headers: { 'Content-Type': 'application/json' }})
+      .then(function(res){
+        if(!res.data || !res.data.success) {
+          return handleError(res);
+        }
+        pinnedMessages[channelId] = res.data.messages;
+        $rootScope.$broadcast('pined_messages_changed', { // Just notice our system
+          channelId: channelId,
+          messages: pinnedMessages[channelId]
         });
+        callback && callback(res.data);
+      });
   }
 
-  function unpinMessage(channelId, messageId, callback){
-    $http.delete('/api/v1/pinnedMessages/' + channelId + '/' + messageId)
+  function unpinMessage(peer, messageGmuid, callback){
+    var channelId = peer.id;
+    if( channelId > 0 ){ // Direct user mode
+      channelId = peer.data.phone + '_' + selfUser.phone;
+    }
+    $http.delete(host + '/api/v1/pinnedMessages/' + channelId + '/' + messageGmuid)
         .then(function(res){
           if(!res.data || !res.data.success) {
             return handleError(res);
           }
-          if( pinnedMessages[channelId] ){
-            pinnedMessages[channelId].splice(pinnedMessages[channelId].indexOf(messageId), 1);
-            loadPinnedMessages(channelId, []);
-          }
+          pinnedMessages[channelId] = res.data.messages;
+          $rootScope.$broadcast('pined_messages_changed', { // Just notice our system
+            channelId: channelId,
+            messages: pinnedMessages[channelId]
+          });
           callback && callback(res.data);
         });
   }
@@ -4008,6 +3998,8 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
   }
       
   return {
+    start: start,
+    listen: listen,
     getPinnedMessages: getPinnedMessages,
     pinMessage: pinMessage,
     unpinMessage: unpinMessage

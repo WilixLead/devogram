@@ -2,6 +2,7 @@
  * Created by Aloyan Dmitry on 14.11.2015.
  */
 var express = require('express');
+var bodyParser = require('body-parser');
 var path = require('path');
 var cors = require('cors');
 var mongoose = require('mongoose');
@@ -15,26 +16,38 @@ var appPath = path.join(__dirname, './dist');
 mongoose.connect('mongodb://localhost:27017/devogram');
 
 app.use(express.static(appPath));
+app.use(bodyParser.json());
 app.use(cors());
 
 app.get('/api/v1/pinnedMessages/:channelId', function(req, res, next){
-    PinnedMessage.findOne({channel_id: req.params.channelId}, function(err, channel){
+    var channelId = req.params.channelId;
+    var searchChannel = {channel_id: channelId};
+    if( channelId.indexOf('_') !== -1 ){
+        channelId = channelId.split('_');
+        searchChannel = {
+            $or: [
+                {channel_id: channelId[0] + '_' + channelId[1]},
+                {channel_id: channelId[1] + '_' + channelId[0]}
+            ]
+        };
+    }
+    PinnedMessage.findOne(searchChannel, function(err, channel){
         if( err ) return next(err);
         return res.send({success: true, messages: channel ? channel.messages : []});
     });
 });
 
-app.post('/api/v1/pinnedMessages/:channelId/:messageId', function(req, res, next){
-    PinnedMessage.pinMessage(req.params.channelId, req.params.messageId, function(err, obj){
+app.post('/api/v1/pinnedMessages/:channelId', function(req, res, next){
+    PinnedMessage.pinMessage(req.params.channelId, req.body.message, function(err, channel){
         if( err ) return next(err);
-        return res.send({success: true});
+        return res.send({success: true, messages: channel ? channel.messages : []});
     });
 });
 
-app.delete('/api/v1/pinnedMessages/:channelId/:messageId', function(req, res, next){
-    PinnedMessage.unpinMessage(req.params.channelId, req.params.messageId, function(err, obj){
+app.delete('/api/v1/pinnedMessages/:channelId/:messageGmuid', function(req, res, next){
+    PinnedMessage.unpinMessage(req.params.channelId, req.params.messageGmuid, function(err, channel){
         if( err ) return next(err);
-        return res.send({success: true});
+        return res.send({success: true, messages: channel ? channel.messages : []});
     });
 });
 

@@ -231,7 +231,19 @@
     </div>
     
     <div class="im_sidebar_col_wrap noselect" ng-controller="AppDevogramSideController" ng-if="sidebar_opened">
-      <div class="im_history_message_wrap" my-pinned-message ng-repeat="historyMessage in pinnedMessages"></div>
+      <ul class="im_sidebar_tabs">
+        <li ng-repeat="tabHead in tabs" ng-class="{active: tabHead.name == activeTab}">
+          <a ng-click="tabHead.action()">{{tabHead.title}}</a>
+        </li>
+      </ul>
+      <div class="im_sidebar_pages">
+        <div class="im_history_message_wrap"
+             ng-if="activeTab == 'pinned'"
+             ng-repeat="historyMessage in pinnedMessages"
+             my-pinned-message>
+        </div>
+      </div>
+      
       <div style="height: 20px; min-height: 20px"></div>
     </div>
   </div>

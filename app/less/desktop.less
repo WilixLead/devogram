@@ -664,10 +664,44 @@ a.footer_link.active:active {
   &_col_wrap {
     float: left;
     width: 25%;
-    padding: 10px 5px 10px;
+    padding: 0;
     overflow-y: auto;
     position: relative;
     border-left: 2px solid #E9EBED;
+  }
+  
+  &_tabs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: #5682A3 none repeat scroll 0% 0%;
+  }
+  
+  &_tabs li {
+    display: inline-block;
+    font-weight: bold;
+    padding: 10px 10px;
+    color: #B9CFE3;
+    font-size: 13px;
+    line-height: 16px;
+  }
+
+  &_tabs li a {
+    color: #B9CFE3;
+  }
+
+  &_tabs li:hover,
+  &_tabs li.active{
+    background: #497799 none repeat scroll 0% 0%;
+  }
+
+  &_tabs li a:hover,
+  &_tabs li a.active{
+    color: #fff;
+  }
+  
+  &_pages{
+    padding: 10px 5px 10px;
   }
 }
 
@@ -1748,6 +1782,7 @@ a.im_panel_peer_photo .peer_initials {
 
 .im_message_pinned .im_message_body{
   margin-top: 5px;
+  margin-left: 0 !important;
 }
 
 .im_message_pinned hr{
