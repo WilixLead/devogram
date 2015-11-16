@@ -3911,7 +3911,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
   var selfUser = null;
   var listenInterval = null;
   var pinnedMessages = {};
-  var host = 'http://localhost:8000';
+  var host = Config.App.devogram_server;
 
   function start(){
     MtpApiManager.invokeApi('users.getFullUser', {
@@ -3941,7 +3941,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
     if( channelId > 0 ){ // Direct user mode
       channelId = peer.data.phone + '_' + selfUser.phone;
     }
-    $http.get(host + '/api/v1/pinnedMessages/' + channelId).then(function(res){
+    $http.get(host + 'api/v1/pinnedMessages/' + channelId).then(function(res){
       if(!res.data || !res.data.success) {
         return handleError(res);
       }
@@ -3958,7 +3958,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
     if( channelId > 0 ){ // Direct user mode
       channelId = peer.data.phone + '_' + selfUser.phone;
     }
-    $http.post(host + '/api/v1/pinnedMessages/' + channelId, 
+    $http.post(host + 'api/v1/pinnedMessages/' + channelId, 
       {message: message}, 
       {headers: { 'Content-Type': 'application/json' }})
       .then(function(res){
@@ -3979,7 +3979,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
     if( channelId > 0 ){ // Direct user mode
       channelId = peer.data.phone + '_' + selfUser.phone;
     }
-    $http.delete(host + '/api/v1/pinnedMessages/' + channelId + '/' + messageGmuid)
+    $http.delete(host + 'api/v1/pinnedMessages/' + channelId + '/' + messageGmuid)
         .then(function(res){
           if(!res.data || !res.data.success) {
             return handleError(res);

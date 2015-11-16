@@ -23,7 +23,8 @@ Config.App = {
   hash: '2e7097e552a05ff3380e6edf772f15d8',
   version: '0.0.1',
   webogram_version: '0.5.0',
-  domains: ['devogram.wilix.ru']
+  domains: ['devogram.wilix.ru'],
+  devogram_server: '/' // if '/' - used start path
 };
 
 Config.Modes = {
