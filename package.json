@@ -1,12 +1,12 @@
 {
-  "name": "Telegram",
-  "description": "Telegram Web App.\nMore info & source code here: https://github.com/zhukov/webogram",
-  "version": "0.5.0",
+  "name": "Devogram",
+  "description": "Telegram for Developers and Teams.\nMore info & source code here: https://github.com/zhukov/webogram",
+  "version": "0.0.1",
   "main": "app/index.html",
   "single-instance": true,
   "dom_storage_quota": 40,
   "window": {
-    "title": "Telegram",
+    "title": "Devogram",
     "icon": "app/img/icons/icon128.png",
     "toolbar": false,
     "frame": true,
@@ -23,12 +23,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/zhukov/webogram.git"
+    "url": "https://github.com/WilixLead/devogram.git"
   },
-  "author": "zhukov",
+  "author": "wilixlead",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/zhukov/webogram/issues"
+    "url": "https://github.com/WilixLead/devogram/issues"
   },
   "locales": [
     "en-us",
@@ -39,7 +39,13 @@
     "nl-nl",
     "pt-br"
   ],
-  "homepage": "http://zhukov.github.io/webogram",
+  "homepage": "http://wilix.ru",
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "cors": "^2.7.1",
+    "express": "^4.13.3",
+    "mongoose": "^4.2.5"
+  },
   "devDependencies": {
     "del": "^1.2.0",
     "event-stream": "^3.1.0",
